@@ -39,7 +39,7 @@ class ArgParser(object):
         self.parser.add_argument('--max_ckpts', type=int, default=15, help='Max ckpts to save.')
         self.parser.add_argument('--load_path', type=str, default=None, help='Load from a previous checkpoint.')
         
-        self.parser.add_argument('--steps_per_print', type=int, default=10, help='Steps taken for each print of logger')
+        self.parser.add_argument('--steps_per_print', type=int, default=100, help='Steps taken for each print of logger')
         self.parser.add_argument('--steps_per_visual', type=int, default=100, help='Steps for  each visual to be printed by logger in tb')
 
     def parse_args(self):

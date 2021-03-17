@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import numpy as np
+import matplotlib.pyplot as plt
 
 from dataset import Dataset
 from arg_parser import ArgParser
-import numpy as np
-import matplotlib.pyplot as plt
+from logger import TrainLogger
 from layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss
 
 
@@ -23,9 +24,14 @@ def main():
 
     dataset = Dataset()
     loader = DataLoader(dataset, batch_size=args.batch_size, num_workers=args.num_workers)
+    logger = TrainLogger(args, len(loader), phase=None)
+    logger.log_hparams(args)
 
     for epoch in range(args.num_epochs):
+        logger.start_epoch()
         for cur_step, (img, _) in enumerate(tqdm(loader, dynamic_ncols=True)):
+            logger.start_iter()
+
             img = img.to(args.device)
 
             disc_opt.zero_grad()
@@ -41,6 +47,11 @@ def main():
             gen_loss = gen_loss_fn(img, fake_2, disc)
             gen_loss.backward()
             gen_opt.step()
+
+            logger.log_iter_gan_from_latent_vector(img, fake, gen_loss, disc_loss)
+            logger.end_iter()
+
+        logger.end_epoch()
 
 if __name__ == '__main__':
     main()
