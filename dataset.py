@@ -4,7 +4,6 @@ from os.path import dirname, join
 import torch
 import torch.utils.data
 from torchvision.transforms import RandomHorizontalFlip, RandomRotation, Compose
-from torchvision.transforms.functional import InterpolationMode
 
 
 def read_pgm(pgmf):
@@ -28,7 +27,7 @@ class Dataset(torch.utils.data.Dataset):
     transforms = Compose([
         lambda img_tensor: img_tensor / 255,
         RandomHorizontalFlip(),
-        RandomRotation(10, interpolation=InterpolationMode.BILINEAR)
+        RandomRotation(10, interpolation=2)
     ])
 
     def __init__(self):
