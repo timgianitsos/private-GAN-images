@@ -12,6 +12,8 @@ from logger import TrainLogger
 # from layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss
 from mnist_layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss, weights_init
 
+from opacus import PrivacyEngine
+
 def lr_lambda(epoch, lr_decay_after=10):
     """ Function for scheduling learning """
     if epoch < lr_decay_after:
@@ -39,6 +41,16 @@ def main():
     disc_scheduler = torch.optim.lr_scheduler.LambdaLR(disc_opt, lr_lambda=lr_lambda)
     disc_loss_fn = DiscriminatorLoss()
     gen_loss_fn = GeneratorLoss()
+
+    privacy_engine = PrivacyEngine(
+        disc,
+        batch_size=args.batch_size,
+        sample_size=args.batch_size,
+        alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
+        noise_multiplier=float(1.),
+        max_grad_norm=1.5,
+    )
+    privacy_engine.attach(disc_opt)
 
     # dataset = Dataset()
     dataset = MNISTDataset()
