@@ -7,6 +7,7 @@ from dataset import Dataset
 from arg_parser import ArgParser
 from layers import Generator, get_noise
 
+
 def main():
     parser = ArgParser()
     args = parser.parse_args()
@@ -24,6 +25,7 @@ def main():
         for cur_step, (img, _) in enumerate(tqdm(loader, dynamic_ncols=True)):
             print(img.shape)
     '''
+
 
 if __name__ == '__main__':
     main()

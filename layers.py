@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class Generator(nn.Module):
     def __init__(self, z_dim):
         '''
@@ -13,7 +14,7 @@ class Generator(nn.Module):
         if not ((z_dim & (z_dim - 1) == 0) and z_dim != 0):
             raise ValueError('Input `z_dim` must be a power of two')
         self.z_dim = z_dim
-        interpolation = 'bilinear' #TODO parameterize this
+        interpolation = 'bilinear'  # TODO parameterize this
 
         in_channels = z_dim
         out_channels = max(z_dim // 2, 1)
@@ -98,12 +99,19 @@ class Generator(nn.Module):
         assert len(noise.shape) == 2
         assert noise.shape[1] == self.z_dim
         # unsqueeze to (batch_size, noise dimension, 1, 1, 1)
-        x = noise.view(noise.shape[0], noise.shape[1], 1, 1)
-        iterator = iter(self.modules())
-        assert self is next(iterator), 'The first value from `self.modules` is self'
-        for layer in iterator:
-            x = layer(x)
-        return x
+        x = noise.view(*noise.shape, 1, 1)
+        x1 = self.blk1(x)
+        x2 = self.blk2(x1)
+        x3 = self.blk3(x2)
+        x4 = self.blk4(x3)
+        x5 = self.blk5(x4)
+        x6 = self.blk6(x5)
+        x7 = self.blk7(x6)
+        x8 = self.blk8(x7)
+        x9 = self.blk9(x8)
+
+        return x9
+
 
 def get_noise(n_samples, z_dim, device='cpu'):
     return torch.randn(n_samples, z_dim, device=device)
