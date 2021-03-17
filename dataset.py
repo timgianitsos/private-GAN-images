@@ -3,7 +3,8 @@ from os.path import dirname, join
 
 import torch
 import torch.utils.data
-from torchvision.transforms import RandomHorizontalFlip, RandomRotation, Compose, InterpolationMode
+from torchvision.transforms import RandomHorizontalFlip, RandomRotation, Compose
+from torchvision.transforms.functional import InterpolationMode
 
 
 def read_pgm(pgmf):
