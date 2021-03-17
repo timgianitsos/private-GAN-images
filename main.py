@@ -10,16 +10,33 @@ from dataset import Dataset, MNISTDataset
 from arg_parser import ArgParser
 from logger import TrainLogger
 # from layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss
-from mnist_layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss
+from mnist_layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss, weights_init
+
+def lr_lambda(epoch, lr_decay_after=10):
+    """ Function for scheduling learning """
+    if epoch < lr_decay_after:
+        return 1.
+    else:
+        return 1 - float(epoch - lr_decay_after) / (
+            n_epochs - lr_decay_after + 1e-8)
 
 def main():
     parser = ArgParser()
     args = parser.parse_args()
+    beta_1 = 0.5 
+    beta_2 = 0.999 
 
-    gen = nn.DataParallel(Generator(args.latent_dim).to(args.device), args.gpu_ids)
-    disc = nn.DataParallel(Discriminator().to(args.device), args.gpu_ids)
-    gen_opt = torch.optim.Adam(gen.parameters(), lr=args.lr)
-    disc_opt = torch.optim.Adam(disc.parameters(), lr=args.lr)
+    gen = Generator(args.latent_dim).to(args.device)
+    gen = gen.apply(weights_init)
+    gen = nn.DataParallel(gen, args.gpu_ids)
+    disc = Discriminator().to(args.device)
+    disc = disc.apply(weights_init)
+    disc = nn.DataParallel(disc, args.gpu_ids)
+
+    gen_opt = torch.optim.Adam(gen.parameters(), lr=args.lr, betas=(beta_1, beta_2))
+    disc_opt = torch.optim.Adam(disc.parameters(), lr=args.lr, betas=(beta_1, beta_2))
+    gen_scheduler = torch.optim.lr_scheduler.LambdaLR(gen_opt, lr_lambda=lr_lambda)
+    disc_scheduler = torch.optim.lr_scheduler.LambdaLR(disc_opt, lr_lambda=lr_lambda)
     disc_loss_fn = DiscriminatorLoss()
     gen_loss_fn = GeneratorLoss()
 
