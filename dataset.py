@@ -27,7 +27,7 @@ class Dataset(torch.utils.data.Dataset):
     transforms = Compose([
         lambda img_tensor: img_tensor / 255,
         RandomHorizontalFlip(),
-        RandomRotation(10, interpolation=2)
+        RandomRotation(10, resample=2)
     ])
 
     def __init__(self):
