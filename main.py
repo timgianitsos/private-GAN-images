@@ -1,15 +1,16 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import torchvision
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 
-from dataset import Dataset
+from dataset import Dataset, MNISTDataset
 from arg_parser import ArgParser
 from logger import TrainLogger
-from layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss
-
+# from layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss
+from mnist_layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss
 
 def main():
     parser = ArgParser()
@@ -22,14 +23,16 @@ def main():
     disc_loss_fn = DiscriminatorLoss()
     gen_loss_fn = GeneratorLoss()
 
-    dataset = Dataset()
+    # dataset = Dataset()
+    dataset = MNISTDataset()
     loader = DataLoader(dataset, batch_size=args.batch_size, num_workers=args.num_workers)
     logger = TrainLogger(args, len(loader), phase=None)
     logger.log_hparams(args)
 
     for epoch in range(args.num_epochs):
         logger.start_epoch()
-        for cur_step, (img, _) in enumerate(tqdm(loader, dynamic_ncols=True)):
+        # for cur_step, (img, _) in enumerate(tqdm(loader, dynamic_ncols=True)):
+        for cur_step, img in enumerate(tqdm(loader, dynamic_ncols=True)):
             logger.start_iter()
 
             img = img.to(args.device)
@@ -55,3 +58,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

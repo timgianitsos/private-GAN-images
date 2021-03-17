@@ -4,6 +4,9 @@ from os.path import dirname, join
 import torch
 import torch.utils.data
 from torchvision.transforms import RandomHorizontalFlip, RandomRotation, Compose
+from torchvision import transforms
+from PIL import Image
+
 
 
 def read_pgm(pgmf):
@@ -51,6 +54,52 @@ class Dataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.filenames)
 
+class MNISTDataset(torch.utils.data.Dataset):
+    """Dataset class for MNIST"""
+
+    def __init__(self, data_root='./mnist_png/training', normalize=True, rotate=False):
+        
+        # Recursively exract paths to all .png files in subdirectories
+        self.file_paths = []
+        for path, subdirs, files in os.walk(data_root):
+            for name in files:
+                if name.endswith(".png"):
+                    self.file_paths.append(os.path.join(path, name))
+                
+        self.transform = self._set_transforms(normalize, rotate)
+
+    def _set_transforms(self, normalize, rotate):
+        """Decide transformations to data to be applied"""
+        transforms_list = []
+
+        # Normalize to the mean and standard deviation all pretrained
+        # torchvision models expect
+        normalize = transforms.Normalize(mean=(0.5,),
+                                         std=(0.5,))
+
+        # 1) transforms PIL image in range [0,255] to [0,1],
+        # 2) transposes [H, W, C] to [C, H, W]
+        if normalize:
+            transforms_list += [transforms.ToTensor(), normalize]
+        else:
+            transforms_list += [transforms.ToTensor()]
+
+        # Applies a random rotation augmentation
+        if rotate:
+            transforms_list += [transforms.RandomRotation(90)]
+
+        transform = transforms.Compose([t for t in transforms_list if t])
+        return transform
+
+    def __len__(self):
+        """Required: specify dataset length for dataloader"""
+        return len(self.file_paths)
+
+    def __getitem__(self, index):
+        """Required: specify what each iteration in dataloader yields"""
+        img = Image.open(self.file_paths[index])
+        img = self.transform(img)
+        return img
 
 def main():
     from matplotlib import pyplot as plt

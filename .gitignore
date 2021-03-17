@@ -502,3 +502,4 @@ $RECYCLE.BIN/
 
 # Project-specific files to ignore
 results
+mnist_png
