@@ -3,25 +3,33 @@ from os.path import dirname, join
 
 import torch
 import torch.utils.data
+from torchvision.transforms import RandomHorizontalFlip, RandomRotation, Compose, InterpolationMode
+
 
 def read_pgm(pgmf):
-	"""Return a raster of integers from a PGM as a list of lists."""
-	# https://stackoverflow.com/a/35726744/7102572
-	assert pgmf.readline().decode('utf-8') == 'P5\n'
-	(width, height) = [int(i) for i in pgmf.readline().split()]
-	depth = int(pgmf.readline())
-	assert depth <= 255
+    """Return a raster of integers from a PGM as a list of lists."""
+    # https://stackoverflow.com/a/35726744/7102572
+    assert pgmf.readline().decode('utf-8') == 'P5\n'
+    (width, height) = [int(i) for i in pgmf.readline().split()]
+    depth = int(pgmf.readline())
+    assert depth <= 255
 
-	raster = []
-	for y in range(height):
-		row = []
-		for y in range(width):
-			row.append(ord(pgmf.read(1)))
-		raster.append(row)
-	return torch.tensor(raster, dtype=torch.uint8).unsqueeze(0)
+    raster = []
+    for y in range(height):
+        row = []
+        for y in range(width):
+            row.append(ord(pgmf.read(1)))
+        raster.append(row)
+    return torch.tensor(raster, dtype=torch.uint8).unsqueeze(0)
+
 
 class Dataset(torch.utils.data.Dataset):
-    
+    transforms = Compose([
+        lambda img_tensor: img_tensor.float() / 255,
+        RandomHorizontalFlip(),
+        RandomRotation(10, interpolation=InterpolationMode.BILINEAR)
+    ])
+
     def __init__(self):
         dataset_path = join(os.curdir, dirname(__file__), 'orl-database-of-faces')
 
@@ -37,10 +45,12 @@ class Dataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         # Specify path relative to this script
         entry, label = self.filenames[index]
-        return read_pgm(open(entry, 'rb')), label
+        img: torch.Tensor = read_pgm(open(entry, 'rb'))
+        return self.transforms(img), label
 
     def __len__(self):
         return len(self.filenames)
+
 
 def main():
     from matplotlib import pyplot as plt
@@ -51,6 +61,7 @@ def main():
         print(f'Displaying: {d.filenames[i][0]} with label {label}')
         plt.imshow(f, plt.cm.gray)
         plt.show()
+
 
 if __name__ == '__main__':
     main()

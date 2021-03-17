@@ -95,6 +95,11 @@ class Generator(nn.Module):
             nn.BatchNorm2d(out_channels),
         )
 
+        self.final = nn.Sequential(
+            nn.Conv2d(out_channels, 1, kernel_size=3, stride=1, padding=1),
+            nn.Sigmoid()
+        )
+
     def forward(self, noise):
         assert len(noise.shape) == 2
         assert noise.shape[1] == self.z_dim
@@ -109,8 +114,9 @@ class Generator(nn.Module):
         x7 = self.blk7(x6)
         x8 = self.blk8(x7)
         x9 = self.blk9(x8)
+        out = self.final(x9)
 
-        return x9
+        return out
 
 
 def get_noise(n_samples, z_dim, device='cpu'):
