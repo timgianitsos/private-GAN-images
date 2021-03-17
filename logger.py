@@ -38,7 +38,7 @@ class BaseLogger(object):
         self.iter = 0
 
         # Current iteration overall (i.e., total # of examples seen)
-        self.global_step = round_down((self.epoch - 1) * dataset_len, args.batch_size)
+        self.global_step = 0
         self.iter_start_time = None
         self.epoch_start_time = None
 
@@ -230,13 +230,13 @@ class TrainLogger(BaseLogger):
         batch_size = real.size(0)
 
         gen_loss = gen_loss.item()
-        self.gen_loss_meter.add(gen_loss, batch_size)
+        self.gen_loss_meter.add(gen_loss)
 
         if disc_loss is not None:
             disc_loss = disc_loss.item()
-            self.disc_loss_meter.add(disc_loss, batch_size)
+            self.disc_loss_meter.add(disc_loss)
         else:
-            self.disc_loss_meter.add(-1, batch_size)
+            self.disc_loss_meter.add(-1)
 
         # Periodically write to the log and TensorBoard
         if self.iter % self.steps_per_print == 0:
@@ -302,8 +302,8 @@ class TrainLogger(BaseLogger):
 
     def end_iter(self):
         """Log info for end of an iteration."""
-        self.iter += self.batch_size
-        self.global_step += self.batch_size
+        self.iter += 1
+        self.global_step += 1
 
     def start_epoch(self):
         """Log info for start of an epoch."""

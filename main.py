@@ -12,19 +12,24 @@ from logger import TrainLogger
 # from layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss
 from mnist_layers import get_noise, Generator, Discriminator, GeneratorLoss, DiscriminatorLoss, weights_init
 
-def lr_lambda(epoch, lr_decay_after=10):
-    """ Function for scheduling learning """
-    if epoch < lr_decay_after:
-        return 1.
-    else:
-        return 1 - float(epoch - lr_decay_after) / (
-            n_epochs - lr_decay_after + 1e-8)
+
+def lr_lambda(num_epochs):
+    def lr_lambda_inner(epoch, lr_decay_after=10):
+        """ Function for scheduling learning """
+        if epoch < lr_decay_after:
+            return 1.
+        else:
+            return 1 - float(epoch - lr_decay_after) / (
+                    num_epochs - lr_decay_after + 1e-8)
+
+    return lr_lambda_inner
+
 
 def main():
     parser = ArgParser()
     args = parser.parse_args()
-    beta_1 = 0.5 
-    beta_2 = 0.999 
+    beta_1 = 0.5
+    beta_2 = 0.999
 
     gen = Generator(args.latent_dim).to(args.device)
     gen = gen.apply(weights_init)
@@ -35,24 +40,23 @@ def main():
 
     gen_opt = torch.optim.Adam(gen.parameters(), lr=args.lr, betas=(beta_1, beta_2))
     disc_opt = torch.optim.Adam(disc.parameters(), lr=args.lr, betas=(beta_1, beta_2))
-    gen_scheduler = torch.optim.lr_scheduler.LambdaLR(gen_opt, lr_lambda=lr_lambda)
-    disc_scheduler = torch.optim.lr_scheduler.LambdaLR(disc_opt, lr_lambda=lr_lambda)
+    gen_scheduler = torch.optim.lr_scheduler.LambdaLR(gen_opt, lr_lambda=lr_lambda(args.num_epochs))
+    disc_scheduler = torch.optim.lr_scheduler.LambdaLR(disc_opt, lr_lambda=lr_lambda(args.num_epochs))
     disc_loss_fn = DiscriminatorLoss()
     gen_loss_fn = GeneratorLoss()
 
     # dataset = Dataset()
     dataset = MNISTDataset()
     loader = DataLoader(dataset, batch_size=args.batch_size, num_workers=args.num_workers)
+    loaded_dataset = [t.to(args.device) for t in loader]
     logger = TrainLogger(args, len(loader), phase=None)
     logger.log_hparams(args)
 
     for epoch in range(args.num_epochs):
         logger.start_epoch()
         # for cur_step, (img, _) in enumerate(tqdm(loader, dynamic_ncols=True)):
-        for cur_step, img in enumerate(tqdm(loader, dynamic_ncols=True)):
+        for cur_step, img in enumerate(tqdm(loaded_dataset, dynamic_ncols=True)):
             logger.start_iter()
-
-            img = img.to(args.device)
 
             disc_opt.zero_grad()
             fake_noise = get_noise(args.batch_size, args.latent_dim, device=args.device)
@@ -72,7 +76,9 @@ def main():
             logger.end_iter()
 
         logger.end_epoch()
+        gen_scheduler.step()
+        disc_scheduler.step()
+
 
 if __name__ == '__main__':
     main()
-

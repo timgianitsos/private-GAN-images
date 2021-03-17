@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 def get_noise(n_samples, z_dim, device='cpu'):
     '''
     Function for creating a noise vector: Given the dimensions (n_samples, z_dim)
@@ -12,6 +13,7 @@ def get_noise(n_samples, z_dim, device='cpu'):
     '''
     return torch.randn(n_samples, z_dim, device=device)
 
+
 class Generator(nn.Module):
     '''
     Generator Class
@@ -21,7 +23,7 @@ class Generator(nn.Module):
             MNIST is black-and-white, so that's our default
     hidden_dim: the inner dimension, a scalar
     '''
-    
+
     def __init__(self, z_dim=10, im_chan=1, hidden_dim=64):
         super(Generator, self).__init__()
         self.z_dim = z_dim
@@ -59,7 +61,7 @@ class Generator(nn.Module):
                 nn.BatchNorm2d(output_channels),
                 nn.ReLU(inplace=True),
             )
-        else: # Final Layer
+        else:  # Final Layer
             return nn.Sequential(
                 nn.ConvTranspose2d(input_channels, output_channels, kernel_size, stride),
                 nn.Tanh(),
@@ -83,6 +85,7 @@ class Generator(nn.Module):
         '''
         x = self.unsqueeze_noise(noise)
         return self.gen(x)
+
 
 class Discriminator(nn.Module):
     '''
@@ -120,7 +123,7 @@ class Discriminator(nn.Module):
         #    1) Add a convolutional layer using the given parameters
         #    2) Do a batchnorm, except for the last layer.
         #    3) Follow each batchnorm with a LeakyReLU activation with slope 0.2.
-        
+
         # Build the neural block
         if not final_layer:
             return nn.Sequential(
@@ -128,7 +131,7 @@ class Discriminator(nn.Module):
                 nn.BatchNorm2d(output_channels),
                 nn.LeakyReLU(0.2, inplace=True),
             )
-        else: # Final Layer
+        else:  # Final Layer
             return nn.Sequential(
                 nn.Conv2d(input_channels, output_channels, kernel_size, stride),
             )
@@ -143,6 +146,7 @@ class Discriminator(nn.Module):
         disc_pred = self.disc(image)
         return disc_pred.view(len(disc_pred), -1)
 
+
 class GeneratorLoss(nn.Module):
     """Implementations of various losses for the generator"""
 
@@ -156,17 +160,6 @@ class GeneratorLoss(nn.Module):
         gen_adv_loss = self.criterion(disc_fake_pred, torch.ones_like(disc_fake_pred))
         return gen_adv_loss
 
-    def lsgan_adversarial_loss(self, real, fake, disc):
-        """Least-squares loss, as defined in https://arxiv.org/abs/1611.04076 (Mao et al. 2016)"""
-        disc_fake_pred = disc(fake)
-        gen_adv_loss = torch.mean((disc_fake_pred - 1.) ** 2)
-        return gen_adv_loss
-
-    def hinge_adversarial_loss(self, real, fake, disc):
-        """Hinge loss, as defined in https://arxiv.org/abs/1705.02894v2 (Lim and Ye 2017)"""
-        disc_fake_pred = disc(fake)
-        gen_adv_loss = torch.mean(-disc_fake_pred)
-
     #### IMPLEMENT YOUR LOSS FUNCTIONS HERE ####
     #### IMPLEMENT YOUR LOSS FUNCTIONS HERE ####
 
@@ -176,6 +169,7 @@ class GeneratorLoss(nn.Module):
         #### CALL YOUR LOSS FUNCTIONS HERE ####
         #### CALL YOUR LOSS FUNCTIONS HERE ####
         return gen_loss
+
 
 class DiscriminatorLoss(nn.Module):
     """Implementations of various losses for the discriminator"""
@@ -195,24 +189,6 @@ class DiscriminatorLoss(nn.Module):
         disc_adv_loss = (disc_fake_adv_loss + disc_real_adv_loss) / 2
         return disc_adv_loss
 
-    def lsgan_adversarial_loss(self, real, fake, disc):
-        """Least-squares loss, as defined in https://arxiv.org/abs/1611.04076 (Mao et al. 2016)"""
-        disc_fake_pred = disc(fake.detach())
-        disc_fake_adv_loss = torch.mean(disc_fake_pred ** 2)
-        disc_real_pred = disc(real)
-        disc_real_adv_loss = torch.mean((disc_real_pred - 1.) ** 2)
-        disc_adv_loss = (disc_fake_adv_loss + disc_real_adv_loss) / 2
-        return disc_adv_loss
-
-    def hinge_adversarial_loss(self, real, fake, disc):
-        """Hinge loss, as defined in https://arxiv.org/abs/1705.02894v2 (Lim and Ye 2017)"""
-        disc_fake_pred = disc(fake.detach())
-        disc_fake_adv_loss = torch.mean(F.relu(1 - disc_fake_pred))
-        disc_real_pred = disc(real)
-        disc_fake_adv_loss = torch.mean(F.relu(1 + disc_fake_pred))
-        disc_adv_loss = (disc_fake_adv_loss + disc_real_adv_loss) / 2
-        return disc_adv_loss
-
     #### IMPLEMENT YOUR LOSS FUNCTIONS HERE ####
     #### IMPLEMENT YOUR LOSS FUNCTIONS HERE ####
 
@@ -223,10 +199,10 @@ class DiscriminatorLoss(nn.Module):
         #### CALL YOUR LOSS FUNCTIONS HERE ####
         return disc_loss
 
+
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
     if isinstance(m, nn.BatchNorm2d):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
         torch.nn.init.constant_(m.bias, 0)
-
