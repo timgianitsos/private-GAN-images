@@ -20,12 +20,12 @@ def read_pgm(pgmf):
         for y in range(width):
             row.append(ord(pgmf.read(1)))
         raster.append(row)
-    return torch.tensor(raster, dtype=torch.uint8).unsqueeze(0)
+    return torch.tensor(raster, dtype=torch.uint8).unsqueeze(0).float()
 
 
 class Dataset(torch.utils.data.Dataset):
     transforms = Compose([
-        lambda img_tensor: img_tensor.float() / 255,
+        lambda img_tensor: img_tensor / 255,
         RandomHorizontalFlip(),
         RandomRotation(10, interpolation=InterpolationMode.BILINEAR)
     ])
