@@ -18,7 +18,7 @@ def read_pgm(pgmf):
 		for y in range(width):
 			row.append(ord(pgmf.read(1)))
 		raster.append(row)
-	return torch.tensor(raster, dtype=torch.uint8)
+	return torch.tensor(raster, dtype=torch.uint8).unsqueeze(0)
 
 class Dataset(torch.utils.data.Dataset):
     
@@ -37,14 +37,17 @@ class Dataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         # Specify path relative to this script
         entry, label = self.filenames[index]
-        return label, read_pgm(open(entry, 'rb'))
+        return read_pgm(open(entry, 'rb')), label
+
+    def __len__(self):
+        return len(self.filenames)
 
 def main():
     from matplotlib import pyplot as plt
     d = Dataset()
     while True:
         i = int(input('Enter an index: '))
-        label, f = d[i]
+        f, label = d[i]
         print(f'Displaying: {d.filenames[i][0]} with label {label}')
         plt.imshow(f, plt.cm.gray)
         plt.show()

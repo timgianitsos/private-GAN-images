@@ -34,6 +34,7 @@ class ArgParser(object):
         self.parser.add_argument('--num_epochs', type=int, default=12, help='Number of epochs to train.')
         self.parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate.')
         self.parser.add_argument('--step_train_discriminator', type=float, default=1, help='Train discriminator every x steps. Set x here.')
+        self.parser.add_argument('--latent_dim', type=int, default=64, help='Dimension of z-vector that is passed into Generator.')
         
         self.parser.add_argument('--max_ckpts', type=int, default=15, help='Max ckpts to save.')
         self.parser.add_argument('--load_path', type=str, default=None, help='Load from a previous checkpoint.')
@@ -95,9 +96,9 @@ class ArgParser(object):
             json.dump(vars(args), fh, indent=4, sort_keys=True)
             fh.write('\n')
 
-        print(json.dumps(vars(args), indent=4, sort_keys=True))
         random.seed(args.seed)
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed_all(args.seed)
+        print(json.dumps(vars(args), indent=4, sort_keys=True))
         return args
