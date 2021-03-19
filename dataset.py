@@ -3,7 +3,7 @@ from os.path import dirname, join
 
 import torch
 import torch.utils.data
-from torchvision.transforms import RandomHorizontalFlip, RandomRotation, Compose
+from torchvision.transforms import RandomHorizontalFlip, RandomRotation, Compose, InterpolationMode
 from torchvision import transforms
 from PIL import Image
 
@@ -29,7 +29,7 @@ class Dataset(torch.utils.data.Dataset):
     transforms = Compose([
         lambda img_tensor: img_tensor / 255,
         RandomHorizontalFlip(),
-        RandomRotation(10, resample=2)
+        RandomRotation(10, interpolation=InterpolationMode.BILINEAR)
     ])
 
     def __init__(self):
@@ -87,7 +87,7 @@ class MNISTDataset(torch.utils.data.Dataset):
 
         # Applies a random rotation augmentation
         if rotate:
-            transforms_list += [transforms.RandomRotation(30)]
+            transforms_list += [transforms.RandomRotation(15, interpolation=InterpolationMode.BILINEAR)]
 
         transform = transforms.Compose([t for t in transforms_list if t])
         return transform
