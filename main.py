@@ -52,17 +52,18 @@ def main():
     logger = TrainLogger(args, len(loader), phase=None)
     logger.log_hparams(args)
 
-    privacy_engine = PrivacyEngine(
-        disc,
-        batch_size=args.batch_size,
-        sample_size=len(dataset),
-        alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
-        noise_multiplier=.8,
-        max_grad_norm=0.02,
-        batch_first=True,
-    )
-    privacy_engine.attach(disc_opt)
-    privacy_engine.to(args.device)
+    if args.privacy_noise_multiplier != 0:
+        privacy_engine = PrivacyEngine(
+            disc,
+            batch_size=args.batch_size,
+            sample_size=len(dataset),
+            alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
+            noise_multiplier=.8,
+            max_grad_norm=0.02,
+            batch_first=True,
+        )
+        privacy_engine.attach(disc_opt)
+        privacy_engine.to(args.device)
 
     for epoch in range(args.num_epochs):
         logger.start_epoch()
@@ -84,9 +85,10 @@ def main():
             gen_loss = gen_loss_fn(img, fake_2, disc)
             gen_loss.backward()
             gen_opt.step()
-            epsilon, best_alpha = privacy_engine.get_privacy_spent(1e-5)
+            if args.privacy_noise_multiplier != 0:
+                epsilon, best_alpha = privacy_engine.get_privacy_spent(args.privacy_delta)
 
-            logger.log_iter_gan_from_latent_vector(img, fake, gen_loss, disc_loss, epsilon)
+            logger.log_iter_gan_from_latent_vector(img, fake, gen_loss, disc_loss, epsilon if args.privacy_noise_multiplier != 0 else 0)
             logger.end_iter()
 
         logger.end_epoch()

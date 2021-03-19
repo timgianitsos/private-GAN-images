@@ -42,6 +42,9 @@ class ArgParser(object):
         self.parser.add_argument('--steps_per_print', type=int, default=50, help='Steps taken for each print of logger')
         self.parser.add_argument('--steps_per_visual', type=int, default=400, help='Steps for  each visual to be printed by logger in tb')
 
+        self.parser.add_argument('--privacy_noise_multiplier', type=float, default=0, help='Determines how quickly privacy parameter epsilon accumulates during training (0 means no privacy / unbounded epsilon)')
+        self.parser.add_argument('--privacy_delta', type=float, default=1e-5, help='Determines the delta term applied for the epsilon-delta formulation of differential privacy')
+
     def parse_args(self):
         args = self.parser.parse_args()
 
