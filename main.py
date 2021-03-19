@@ -69,14 +69,13 @@ def main():
         for cur_step, img in enumerate(tqdm(loader, dynamic_ncols=True)):
             logger.start_iter()
             img = img.to(args.device)
-            fake, disc_loss = None, None
-            for _ in range(args.step_train_discriminator):
-                disc_opt.zero_grad()
-                fake_noise = get_noise(args.batch_size, args.latent_dim, device=args.device)
-                fake = gen(fake_noise)
-                disc_loss = disc_loss_fn(img, fake, disc)
-                disc_loss.backward()
-                disc_opt.step()
+
+            disc_opt.zero_grad()
+            fake_noise = get_noise(args.batch_size, args.latent_dim, device=args.device)
+            fake = gen(fake_noise)
+            disc_loss = disc_loss_fn(img, fake, disc)
+            disc_loss.backward()
+            disc_opt.step()
 
             gen_opt.zero_grad()
             fake_noise_2 = get_noise(args.batch_size, args.latent_dim, device=args.device)
