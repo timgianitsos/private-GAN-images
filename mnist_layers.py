@@ -24,48 +24,63 @@ class Generator(nn.Module):
     hidden_dim: the inner dimension, a scalar
     '''
 
-    def __init__(self, z_dim=10, im_chan=1, hidden_dim=64):
+    def __init__(self, z_dim, out_im_chan=1):
         super(Generator, self).__init__()
         self.z_dim = z_dim
-        # Build the neural network
-        self.gen = nn.Sequential(
-            self.make_gen_block(z_dim, hidden_dim * 4),
-            self.make_gen_block(hidden_dim * 4, hidden_dim * 2, kernel_size=4, stride=1),
-            self.make_gen_block(hidden_dim * 2, hidden_dim),
-            self.make_gen_block(hidden_dim, im_chan, kernel_size=4, final_layer=True),
+        interpolation = 'bilinear'  # TODO parameterize this
+
+        in_channels = z_dim
+        out_channels = max(in_channels // 2, 1)
+        self.blk1 = nn.Sequential(
+            nn.Upsample(scale_factor=2, mode=interpolation),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.BatchNorm2d(out_channels),
         )
 
-    def make_gen_block(self, input_channels, output_channels, kernel_size=3, stride=2, final_layer=False):
-        '''
-        Function to return a sequence of operations corresponding to a generator block of the DCGAN, 
-        corresponding to a transposed convolution, a batchnorm (except for in the last layer), and an activation
-        Parameters:
-        input_channels: how many channels the input feature representation has
-        output_channels: how many channels the output feature representation should have
-        kernel_size: the size of each convolutional filter, equivalent to (kernel_size, kernel_size)
-        stride: the stride of the convolution
-        final_layer: whether we're on the final layer (affects activation and batchnorm)
-        '''
-        # Hints: You'll find nn.ConvTranspose2d (https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html) 
-        #    and nn.BatchNorm2d (https://pytorch.org/docs/master/generated/torch.nn.BatchNorm2d.html) useful!
-        #    Steps:
-        #    1) Do a transposed convolution using the given parameters
-        #    2) Do a batchnorm, except for the last layer.
-        #    3) Follow each batchnorm with a ReLU activation.
-        #    4) If its the final layer, use a Tanh activation after the deconvolution instead of a ReLU.
+        in_channels = out_channels
+        out_channels = max(in_channels // 2, 1)
+        self.blk2 = nn.Sequential(
+            nn.Upsample(scale_factor=2, mode=interpolation),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.BatchNorm2d(out_channels),
+        )
 
-        # Build the neural block
-        if not final_layer:
-            return nn.Sequential(
-                nn.ConvTranspose2d(input_channels, output_channels, kernel_size, stride),
-                nn.BatchNorm2d(output_channels),
-                nn.ReLU(inplace=True),
-            )
-        else:  # Final Layer
-            return nn.Sequential(
-                nn.ConvTranspose2d(input_channels, output_channels, kernel_size, stride),
-                nn.Tanh(),
-            )
+        in_channels = out_channels
+        out_channels = max(in_channels // 2, 1)
+        self.blk3 = nn.Sequential(
+            nn.Upsample(scale_factor=2, mode=interpolation),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.BatchNorm2d(out_channels),
+        )
+
+        in_channels = out_channels
+        out_channels = out_channels
+        self.blk4 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=2, stride=1, padding=0),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.BatchNorm2d(out_channels),
+        )
+
+        in_channels = out_channels
+        out_channels = max(in_channels // 2, 1)
+        self.blk5 = nn.Sequential(
+            nn.Upsample(scale_factor=2, mode=interpolation),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.BatchNorm2d(out_channels),
+        )
+
+        in_channels = out_channels
+        out_channels = 1
+        self.blk6 = nn.Sequential(
+            nn.Upsample(scale_factor=2, mode=interpolation),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.BatchNorm2d(out_channels),
+        )
 
     def unsqueeze_noise(self, noise):
         '''
@@ -84,7 +99,13 @@ class Generator(nn.Module):
         noise: a noise tensor with dimensions (batch_size, z_dim)
         '''
         x = self.unsqueeze_noise(noise)
-        return self.gen(x)
+        x1 = self.blk1(x)
+        x2 = self.blk2(x1)
+        x3 = self.blk3(x2)
+        x4 = self.blk4(x3)
+        x5 = self.blk5(x4)
+        x6 = self.blk6(x5)
+        return x6
 
 
 class Discriminator(nn.Module):

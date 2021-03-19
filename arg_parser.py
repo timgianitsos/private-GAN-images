@@ -33,7 +33,7 @@ class ArgParser(object):
 
         self.parser.add_argument('--num_epochs', type=int, default=1000, help='Number of epochs to train.')
         self.parser.add_argument('--lr', type=float, default=5e-5, help='Learning rate.')
-        self.parser.add_argument('--step_train_discriminator', type=float, default=1, help='Train discriminator every x steps. Set x here.')
+        self.parser.add_argument('--step_train_discriminator', type=float, default=5, help='Train discriminator x steps for every 1 step of generator.')
         self.parser.add_argument('--latent_dim', type=int, default=64, help='Dimension of z-vector that is passed into Generator.')
         
         self.parser.add_argument('--max_ckpts', type=int, default=15, help='Max ckpts to save.')
