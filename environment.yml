@@ -1,0 +1,21 @@
+name: priv
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - matplotlib
+  - numpy
+  - tensorflow
+  - torchvision
+  - python=3.8
+  - scipy
+  - tqdm
+  - pytorch
+  - tensorboardx
+  - tensorboard
+  - pip
+  - pip:
+    - torch-summary
+    - torchnet
+    - opacus
