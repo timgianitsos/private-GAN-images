@@ -22,10 +22,10 @@ class ArgParser(object):
         self.parser.add_argument('--name', type=str, default='debug', help='Experiment name prefix.')
         self.parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducible outputs.')
 
-        self.parser.add_argument('--batch_size', type=int, default=128, help='Batch size.')
+        self.parser.add_argument('--batch_size', type=int, default=2048, help='Batch size.')
         self.parser.add_argument('--viz_batch_size', type=int, default=4, help='Visualization image batch size.')
 
-        self.parser.add_argument('--gpu_ids', type=str, default='0', help='Comma-separated list of GPU IDs. Use -1 for CPU.')
+        self.parser.add_argument('--gpu_ids', type=str, default='0,1', help='Comma-separated list of GPU IDs. Use -1 for CPU.')
         self.parser.add_argument('--num_workers', default=4, type=int, help='Number of threads for the DataLoader.')
 
         self.parser.add_argument('--save_dir', type=str, default=join(os.curdir, dirname(__file__), 'results'), help='Directory for results, prefix.')

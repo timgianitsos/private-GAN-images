@@ -8,7 +8,6 @@ from torchvision import transforms
 from PIL import Image
 
 
-
 def read_pgm(pgmf):
     """Return a raster of integers from a PGM as a list of lists."""
     # https://stackoverflow.com/a/35726744/7102572
@@ -54,18 +53,20 @@ class Dataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.filenames)
 
+
 class MNISTDataset(torch.utils.data.Dataset):
     """Dataset class for MNIST"""
 
-    def __init__(self, data_root='./mnist_png/training', normalize=True, rotate=False):
-        
+    def __init__(self, data_root='./mnist_png/training', num=None, normalize=True, rotate=False):
+
         # Recursively exract paths to all .png files in subdirectories
+        assert num is None or num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         self.file_paths = []
         for path, subdirs, files in os.walk(data_root):
             for name in files:
-                if name.endswith(".png"):
+                if name.endswith(".png") and (num is None or str(num) in path):
                     self.file_paths.append(os.path.join(path, name))
-                
+
         self.transform = self._set_transforms(normalize, rotate)
 
     def _set_transforms(self, normalize, rotate):
@@ -86,7 +87,7 @@ class MNISTDataset(torch.utils.data.Dataset):
 
         # Applies a random rotation augmentation
         if rotate:
-            transforms_list += [transforms.RandomRotation(90)]
+            transforms_list += [transforms.RandomRotation(30)]
 
         transform = transforms.Compose([t for t in transforms_list if t])
         return transform

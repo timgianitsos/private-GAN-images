@@ -128,7 +128,7 @@ class Discriminator(nn.Module):
         if not final_layer:
             return nn.Sequential(
                 nn.Conv2d(input_channels, output_channels, kernel_size, stride),
-                nn.BatchNorm2d(output_channels),
+                nn.InstanceNorm2d(output_channels),
                 nn.LeakyReLU(0.2, inplace=True),
             )
         else:  # Final Layer
@@ -160,14 +160,14 @@ class GeneratorLoss(nn.Module):
         gen_adv_loss = self.criterion(disc_fake_pred, torch.ones_like(disc_fake_pred))
         return gen_adv_loss
 
-    #### IMPLEMENT YOUR LOSS FUNCTIONS HERE ####
-    #### IMPLEMENT YOUR LOSS FUNCTIONS HERE ####
+    def wgan_loss(self, real, fake, disc):
+        return -torch.mean(disc(fake))
+
 
     def forward(self, real, fake, disc):
         gen_loss = 0
-        gen_loss += self.lambda_adversarial * self.bce_adversarial_loss(real, fake, disc)
-        #### CALL YOUR LOSS FUNCTIONS HERE ####
-        #### CALL YOUR LOSS FUNCTIONS HERE ####
+        # gen_loss += self.lambda_adversarial * self.bce_adversarial_loss(real, fake, disc)
+        gen_loss += self.wgan_loss(real, fake, disc)
         return gen_loss
 
 
@@ -189,12 +189,16 @@ class DiscriminatorLoss(nn.Module):
         disc_adv_loss = (disc_fake_adv_loss + disc_real_adv_loss) / 2
         return disc_adv_loss
 
+    def wgan_loss(self, real, fake, disc):
+        return torch.mean(disc(fake)) - torch.mean(disc(real))
+
     #### IMPLEMENT YOUR LOSS FUNCTIONS HERE ####
     #### IMPLEMENT YOUR LOSS FUNCTIONS HERE ####
 
     def forward(self, real, fake, disc):
         disc_loss = 0
-        disc_loss += self.lambda_adversarial * self.bce_adversarial_loss(real, fake, disc)
+        # disc_loss += self.lambda_adversarial * self.bce_adversarial_loss(real, fake, disc)
+        disc_loss += self.wgan_loss(real, fake, disc)
         #### CALL YOUR LOSS FUNCTIONS HERE ####
         #### CALL YOUR LOSS FUNCTIONS HERE ####
         return disc_loss

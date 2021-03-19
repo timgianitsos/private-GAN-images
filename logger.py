@@ -225,7 +225,7 @@ class TrainLogger(BaseLogger):
                               unique_id=self.tag_suffix)
             self.classifier_loss_meter.reset()
 
-    def log_iter_gan_from_latent_vector(self, real, fake, gen_loss, disc_loss):
+    def log_iter_gan_from_latent_vector(self, real, fake, gen_loss, disc_loss, privacy_eps=-1):
         """Log results from a training iteration."""
         batch_size = real.size(0)
 
@@ -243,7 +243,7 @@ class TrainLogger(BaseLogger):
 
             # Write a header for the log entry
             avg_time = (time() - self.iter_start_time) / batch_size
-            message = f"[epoch: {self.epoch}, iter: {self.iter} / {self.dataset_len}, time: {avg_time:.2f}, gen loss: {self.gen_loss_meter.mean:.3g}, disc loss: {self.disc_loss_meter.mean:.3g}]"
+            message = f"[epoch: {self.epoch}, iter: {self.iter} / {self.dataset_len}, time: {avg_time:.2f}, gen loss: {self.gen_loss_meter.mean:.3g}, disc loss: {self.disc_loss_meter.mean:.3g}, eps: {privacy_eps: .3g}]"
             self.write(message)
 
             # Write all errors as scalars to the graph
@@ -256,6 +256,11 @@ class TrainLogger(BaseLogger):
                               print_to_stdout=False,
                               unique_id=self.tag_suffix)
             self.disc_loss_meter.reset()
+
+            if privacy_eps > 0:
+                self._log_scalars({'eps': privacy_eps},
+                                  print_to_stdout=False,
+                                  unique_id=self.tag_suffix)
 
         # Periodically visualize up to num_visuals training examples from the batch
         if self.iter % self.steps_per_visual == 0:
