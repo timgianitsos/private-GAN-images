@@ -73,15 +73,16 @@ class MNISTDataset(torch.utils.data.Dataset):
         """Decide transformations to data to be applied"""
         transforms_list = []
 
-        # Normalize to the mean and standard deviation all pretrained
-        # torchvision models expect
-        normalize = transforms.Normalize(mean=(0.5,),
-                                         std=(0.5,))
-
         # 1) transforms PIL image in range [0,255] to [0,1],
         # 2) transposes [H, W, C] to [C, H, W]
         if normalize:
-            transforms_list += [transforms.ToTensor(), normalize]
+            transforms_list += [
+                # Converts image pixels to floats between 0 and 1
+                transforms.ToTensor(),
+                # Shifts range to be between -1 and 1
+                # all pretrained torchvision models expect it
+                transforms.Normalize(mean=(0.5,), std=(0.5,))
+            ]
         else:
             transforms_list += [transforms.ToTensor()]
 

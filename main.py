@@ -52,6 +52,7 @@ def main():
     logger = TrainLogger(args, len(loader), phase=None)
     logger.log_hparams(args)
 
+    '''
     privacy_engine = PrivacyEngine(
         disc,
         batch_size=args.batch_size,
@@ -63,6 +64,7 @@ def main():
     )
     privacy_engine.attach(disc_opt)
     privacy_engine.to(args.device)
+    '''
 
     for epoch in range(args.num_epochs):
         logger.start_epoch()
@@ -83,9 +85,9 @@ def main():
             gen_loss = gen_loss_fn(img, fake_2, disc)
             gen_loss.backward()
             gen_opt.step()
-            epsilon, best_alpha = privacy_engine.get_privacy_spent(1e-5)
+            # epsilon, best_alpha = privacy_engine.get_privacy_spent(1e-5)
 
-            logger.log_iter_gan_from_latent_vector(img, fake, gen_loss, disc_loss, epsilon)
+            logger.log_iter_gan_from_latent_vector(img, fake, gen_loss, disc_loss, 0)
             logger.end_iter()
 
         logger.end_epoch()

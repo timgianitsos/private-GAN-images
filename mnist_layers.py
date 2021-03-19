@@ -78,6 +78,7 @@ class Generator(nn.Module):
         self.blk6 = nn.Sequential(
             nn.Upsample(scale_factor=2, mode=interpolation),
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.Tanh(),
         )
 
     def unsqueeze_noise(self, noise):
