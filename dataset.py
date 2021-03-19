@@ -75,13 +75,12 @@ class MNISTDataset(torch.utils.data.Dataset):
 
         # Normalize to the mean and standard deviation all pretrained
         # torchvision models expect
-        normalize = transforms.Normalize(mean=(0.5,),
-                                         std=(0.5,))
+        n = transforms.Normalize(mean=(0.5,), std=(0.2,))
 
         # 1) transforms PIL image in range [0,255] to [0,1],
         # 2) transposes [H, W, C] to [C, H, W]
         if normalize:
-            transforms_list += [transforms.ToTensor(), normalize]
+            transforms_list += [transforms.ToTensor(), n]
         else:
             transforms_list += [transforms.ToTensor()]
 
@@ -101,6 +100,7 @@ class MNISTDataset(torch.utils.data.Dataset):
         img = Image.open(self.file_paths[index])
         img = self.transform(img)
         return img
+
 
 def main():
     from matplotlib import pyplot as plt
